@@ -1,1 +1,108 @@
-# -Md-life-cycle
+# -Md-life-
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#071525">
+<title>MD LIFECYCLE Pro</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#071525;color:#eef5ff;font-family:Arial}
+header{padding:18px;background:#10243a;display:flex;justify-content:space-between;align-items:center}
+.brand{font-size:20px;font-weight:bold;color:#39c9df}
+.brand small{display:block;font-size:11px;color:#a8bdcf;margin-top:5px}
+button{cursor:pointer;border:0;border-radius:9px;padding:12px;background:#087fa5;color:white}
+.layout{display:flex;min-height:90vh}
+nav{width:220px;background:#0d2035;padding:12px}
+nav button{width:100%;margin:5px 0;text-align:right;background:#142c44}
+nav button.active{background:#087fa5}
+main{flex:1;padding:22px;min-width:0}
+.page{display:none}.page.active{display:block}
+.muted{color:#a9bfd2;line-height:1.8}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-top:20px}
+.card{background:#102943;border:1px solid #24435d;border-radius:13px;padding:18px}
+.number{font-size:27px;color:#40c9df;font-weight:bold}
+input{width:100%;padding:12px;border-radius:8px;border:1px solid #34536c;background:#091b2d;color:white;margin:8px 0}
+#preview{width:100%;max-width:400px;border-radius:12px;margin-top:12px;display:none}
+@media(max-width:650px){.layout{display:block}nav{width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px}nav button{text-align:center}main{padding:15px}}
+</style>
+</head>
+<body>
+<header>
+<div class="brand">MD LIFECYCLE Pro<small>Medical Equipment Management System</small></div>
+<button onclick="toggleLanguage()" id="lang">English</button>
+</header>
+<div class="layout">
+<nav id="nav">
+<button class="active" onclick="show('dashboard',this)">لوحة التحكم</button>
+<button onclick="show('devices',this)">الأجهزة الطبية</button>
+<button onclick="show('scanner',this)">التشخيص AI</button>
+<button onclick="show('maintenance',this)">الصيانة</button>
+<button onclick="show('inventory',this)">المخزون</button>
+<button onclick="show('companies',this)">الشركات</button>
+<button onclick="show('reports',this)">التقارير</button>
+<button onclick="show('settings',this)">الإعدادات</button>
+</nav>
+<main>
+<section id="dashboard" class="page active">
+<h1>لوحة التحكم الرئيسية</h1>
+<p class="muted">مرحباً بك في منصة إدارة دورة حياة الأجهزة الطبية.</p>
+<div class="grid">
+<div class="card"><h3>إجمالي الأجهزة</h3><div class="number">0</div></div>
+<div class="card"><h3>أوامر الصيانة</h3><div class="number">0</div></div>
+<div class="card"><h3>الشركات</h3><div class="number">0</div></div>
+<div class="card"><h3>التنبيهات</h3><div class="number">0</div></div>
+</div>
+</section>
+<section id="devices" class="page">
+<h1>الأجهزة الطبية</h1>
+<div class="card"><p>سجل الأجهزة وإدارة بياناتها سيُربط بقاعدة البيانات في المرحلة القادمة.</p></div>
+</section>
+<section id="scanner" class="page">
+<h1>التشخيص بالذكاء الاصطناعي</h1>
+<div class="card">
+<p>صوّر الجهاز الطبي أو اختر صورة من هاتفك.</p>
+<input type="file" id="photo" accept="image/*" capture="environment">
+<img id="preview" alt="صورة الجهاز">
+<button onclick="prepareAnalysis()">تجهيز الصورة للتحليل</button>
+<p id="status" class="muted">محرك التشخيص الحقيقي لم يُربط بعد.</p>
+</div>
+</section>
+<section id="maintenance" class="page"><h1>الصيانة</h1><div class="card">إدارة أوامر الصيانة ستُفعّل لاحقاً.</div></section>
+<section id="inventory" class="page"><h1>المخزون وقطع الغيار</h1><div class="card">إدارة المخزون ستُفعّل لاحقاً.</div></section>
+<section id="companies" class="page"><h1>الشركات</h1><div class="card">إدارة الشركات والاشتراكات ستُفعّل لاحقاً.</div></section>
+<section id="reports" class="page"><h1>التقارير</h1><div class="card">التقارير ستُفعّل لاحقاً.</div></section>
+<section id="settings" class="page"><h1>الإعدادات</h1><div class="card">إعدادات المنصة ستُفعّل لاحقاً.</div></section>
+</main>
+</div>
+<script>
+function show(id,btn){
+document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+document.getElementById(id).classList.add('active');
+document.querySelectorAll('#nav button').forEach(b=>b.classList.remove('active'));
+btn.classList.add('active');
+}
+const photo=document.getElementById('photo');
+photo.addEventListener('change',()=>{
+const file=photo.files[0];
+if(!file)return;
+document.getElementById('preview').src=URL.createObjectURL(file);
+document.getElementById('preview').style.display='block';
+document.getElementById('status').textContent='تم اختيار الصورة بنجاح.';
+});
+function prepareAnalysis(){
+if(!photo.files.length){alert('صوّر الجهاز أو اختر صورة أولاً');return;}
+document.getElementById('status').textContent='الصورة جاهزة. نحتاج ربط محرك الذكاء الاصطناعي قبل إصدار أي تشخيص.';
+}
+let english=false;
+function toggleLanguage(){
+english=!english;
+document.documentElement.lang=english?'en':'ar';
+document.documentElement.dir=english?'ltr':'rtl';
+document.getElementById('lang').textContent=english?'العربية':'English';
+}
+</script>
+</body>
+</html>
+
