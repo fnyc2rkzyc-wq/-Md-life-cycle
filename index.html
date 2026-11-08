@@ -1,14 +1,486 @@
+
+<!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#071525">
-<title>MD LIFECYCLE Pro</title>
+<title>MD LifeCycle Pro</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#071525;color:#eef5ff;font-family:Arial}
-header{padding:18px;background:#10243a;display:flex;justify-content:space-between;align-items:center}
-.brand{font-size:20px;font-weight:bold;color:#39c9df}
+body{
+ margin:0;background:#071525;color:#edf5ff;
+ font-family:Arial,sans-serif;min-height:100vh
+}
+header{
+ background:#10243a;padding:17px 22px;
+ display:flex;justify-content:space-between;
+ align-items:center;border-bottom:1px solid #24435d
+}
+.brand{font-size:21px;font-weight:bold;color:#39c9df}
 .brand small{display:block;font-size:11px;color:#a8bdcf;margin-top:5px}
-button{cursor:pointer
+button{
+ cursor:pointer;border:0;border-radius:9px;padding:12px 17px;
+ background:#087fa5;color:white;font-size:14px;font-weight:bold
+}
+button:disabled{opacity:.5;cursor:not-allowed}
+input,select{
+ width:100%;padding:13px;margin:7px 0 14px;
+ border-radius:8px;border:1px solid #34536c;
+ background:#091b2d;color:white;font-size:15px
+}
+label{font-size:13px;color:#b8ccdf}
+h1,h2,h3{margin-top:0}
+.muted{color:#a9bfd2;line-height:1.8}
+.container{max-width:1100px;margin:auto;padding:22px}
+.card{
+ background:#102943;border:1px solid #24435d;
+ border-radius:13px;padding:20px;margin-bottom:17px
+}
+.login-wrap{
+ max-width:430px;margin:65px auto;padding:20px
+}
+.login-wrap .card{padding:25px}
+.hidden{display:none!important}
+.grid{
+ display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+ gap:15px
+}
+.stat{font-size:27px;color:#40c9df;font-weight:bold}
+.topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.status{padding:12px;border-radius:8px;margin:12px 0;line-height:1.7}
+.success{background:#123d35;color:#9cf0cf}
+.error{background:#4a2029;color:#ffc4cb}
+.info{background:#18354e;color:#c7e8ff}
+.company{
+ border-bottom:1px solid #29465e;padding:13px 0;
+ overflow-wrap:anywhere
+}
+.small{font-size:12px;color:#a9bfd2}
+footer{text-align:center;color:#7892a9;padding:25px;font-size:12px}
+@media(max-width:600px){
+ .container{padding:13px}
+ .login-wrap{margin:25px auto}
+ header{padding:14px}
+}
+</style>
+</head>
 
+<body>
+
+<header>
+ <div class="brand">
+  MD LIFECYCLE Pro
+  <small>Medical Equipment Management System</small>
+ </div>
+ <button id="logoutBtn" class="hidden" onclick="logout()">تسجيل الخروج</button>
+</header>
+
+<!-- LOGIN -->
+<section id="loginSection" class="login-wrap">
+ <div class="card">
+  <h2>تسجيل الدخول</h2>
+  <p class="muted">مرحباً بك في منصة MD LifeCycle Pro</p>
+
+  <label>البريد الإلكتروني</label>
+  <input id="loginEmail" type="email"
+   placeholder="البريد الإلكتروني" autocomplete="username">
+
+  <label>كلمة المرور</label>
+  <input id="loginPassword" type="password"
+   placeholder="كلمة المرور" autocomplete="current-password">
+
+  <button id="loginBtn" style="width:100%" onclick="login()">
+   دخول إلى المنصة
+  </button>
+
+  <div id="loginMessage"></div>
+ </div>
+</section>
+
+<!-- OWNER DASHBOARD -->
+<section id="dashboardSection" class="container hidden">
+
+ <div class="topline">
+  <div>
+   <h1>لوحة مدير المنصة</h1>
+   <p class="muted">إدارة الشركات والاشتراكات في MD LifeCycle Pro</p>
+  </div>
+  <span class="small" id="ownerName"></span>
+ </div>
+
+ <div id="mainMessage"></div>
+
+ <div class="grid">
+  <div class="card">
+   <div class="muted">إجمالي الشركات</div>
+   <div class="stat" id="companyCount">0</div>
+  </div>
+  <div class="card">
+   <div class="muted">نوع الحساب</div>
+   <div class="stat" style="font-size:20px">OWNER</div>
+  </div>
+ </div>
+
+ <!-- CREATE COMPANY -->
+ <div class="card">
+  <h2>إضافة شركة جديدة</h2>
+  <p class="muted">
+   أنشئ شركة وحساب مدير خاص بها واشتراكاً أولياً.
+  </p>
+
+  <label>اسم الشركة</label>
+  <input id="companyName" placeholder="مثال: شركة الأجهزة الطبية">
+
+  <label>اسم مدير الشركة</label>
+  <input id="adminName" placeholder="الاسم الكامل">
+
+  <label>البريد الإلكتروني لمدير الشركة</label>
+  <input id="adminEmail" type="email"
+   placeholder="admin@example.com">
+
+  <label>كلمة مرور حساب المدير</label>
+  <input id="adminPassword" type="password"
+   placeholder="كلمة مرور جديدة">
+
+  <label>الباقة</label>
+  <select id="planName">
+   <option value="starter">Starter</option>
+   <option value="professional">Professional</option>
+   <option value="enterprise">Enterprise</option>
+  </select>
+
+  <label>عدد المستخدمين المسموح</label>
+  <input id="maxUsers" type="number" min="1" value="5">
+
+  <label>مدة الاشتراك بالأيام</label>
+  <input id="subscriptionDays" type="number" min="1" value="30">
+
+  <button id="createBtn" onclick="createCompany()">
+   إنشاء الشركة وحساب المدير
+  </button>
+ </div>
+
+ <!-- COMPANIES -->
+ <div class="card">
+  <div class="topline">
+   <h2>الشركات المسجلة</h2>
+   <button onclick="loadCompanies()">تحديث القائمة</button>
+  </div>
+  <div id="companiesList" class="muted">
+   جاري تحميل الشركات...
+  </div>
+ </div>
+
+ <div class="card">
+  <h2>أقسام المنصة</h2>
+  <div class="grid">
+   <div class="company">الأجهزة الطبية <span class="small">قيد الربط</span></div>
+   <div class="company">الصيانة <span class="small">قيد الربط</span></div>
+   <div class="company">المخزون وقطع الغيار <span class="small">قيد الربط</span></div>
+   <div class="company">التشخيص الذكي <span class="small">قيد الربط</span></div>
+   <div class="company">التقارير <span class="small">قيد الربط</span></div>
+  </div>
+ </div>
+
+</section>
+
+<footer>MD LifeCycle Pro · Medical Equipment Management</footer>
+
+<script>
+// ==========================================
+// SUPABASE CONNECTION
+// ==========================================
+
+const SUPABASE_URL =
+"https://rtwjlcralftumvketjkw.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_LQBKKbN8KryMJE-Sk0QUMg_URdR6geF";
+
+const db = window.supabase.createClient(
+ SUPABASE_URL,
+ SUPABASE_KEY
+);
+
+// ==========================================
+// HELPERS
+// ==========================================
+
+function message(id,text,type="info"){
+ const el=document.getElementById(id);
+ el.className="status "+type;
+ el.textContent=text;
+}
+
+function showDashboard(){
+ document.getElementById("loginSection").classList.add("hidden");
+ document.getElementById("dashboardSection").classList.remove("hidden");
+ document.getElementById("logoutBtn").classList.remove("hidden");
+}
+
+function showLogin(){
+ document.getElementById("loginSection").classList.remove("hidden");
+ document.getElementById("dashboardSection").classList.add("hidden");
+ document.getElementById("logoutBtn").classList.add("hidden");
+}
+
+// ==========================================
+// CHECK OWNER PROFILE
+// ==========================================
+
+async function checkOwner(){
+ const {data:{session},error:sessionError} =
+  await db.auth.getSession();
+
+ if(sessionError || !session){
+  showLogin();
+  return;
+ }
+
+ const user=session.user;
+
+ const {data:profile,error} = await db
+  .from("profiles")
+  .select("role,company_id,full_name")
+  .eq("id",user.id)
+  .single();
+
+ if(error || !profile){
+  await db.auth.signOut();
+  showLogin();
+  message("loginMessage","تعذر قراءة ملف المستخدم. تحقق من إعدادات الحساب.","error");
+  return;
+ }
+
+ if(profile.role!=="owner" || profile.company_id!==null){
+  await db.auth.signOut();
+  showLogin();
+  message("loginMessage","هذا الحساب ليس حساب مالك المنصة.","error");
+  return;
+ }
+
+ document.getElementById("ownerName").textContent =
+  profile.full_name || user.email;
+
+ showDashboard();
+ await loadCompanies();
+}
+
+// ==========================================
+// LOGIN
+// ==========================================
+
+async function login(){
+ const email=document.getElementById("loginEmail").value.trim();
+ const password=document.getElementById("loginPassword").value;
+ const btn=document.getElementById("loginBtn");
+
+ if(!email || !password){
+  message("loginMessage","أدخل البريد الإلكتروني وكلمة المرور.","error");
+  return;
+ }
+
+ btn.disabled=true;
+ btn.textContent="جاري تسجيل الدخول...";
+
+ const {data,error}=await db.auth.signInWithPassword({
+  email,
+  password
+ });
+
+ btn.disabled=false;
+ btn.textContent="دخول إلى المنصة";
+
+ if(error){
+  message("loginMessage","فشل تسجيل الدخول: "+error.message,"error");
+  return;
+ }
+
+ await checkOwner();
+}
+
+// ==========================================
+// LOGOUT
+// ==========================================
+
+async function logout(){
+ await db.auth.signOut();
+ showLogin();
+ document.getElementById("loginPassword").value="";
+}
+
+// ==========================================
+// LOAD COMPANIES
+// ==========================================
+
+async function loadCompanies(){
+ const list=document.getElementById("companiesList");
+ list.textContent="جاري تحميل الشركات...";
+
+ const {data,error}=await db
+  .from("companies")
+  .select("id,name,status,created_at")
+  .order("created_at",{ascending:false});
+
+ if(error){
+  list.textContent="تعذر تحميل الشركات: "+error.message;
+  return;
+ }
+
+ document.getElementById("companyCount").textContent=data.length;
+
+ if(!data.length){
+  list.textContent="لا توجد شركات مسجلة حالياً.";
+  return;
+ }
+
+ list.innerHTML="";
+
+ data.forEach(company=>{
+  const item=document.createElement("div");
+  item.className="company";
+
+  const name=document.createElement("strong");
+  name.textContent=company.name;
+
+  const details=document.createElement("div");
+  details.className="small";
+  details.textContent=
+   "الحالة: "+company.status+
+   " · تاريخ الإنشاء: "+
+   new Date(company.created_at).toLocaleDateString();
+
+  item.appendChild(name);
+  item.appendChild(details);
+  list.appendChild(item);
+ });
+}
+
+// ==========================================
+// CREATE COMPANY USING EDGE FUNCTION
+// ==========================================
+
+async function createCompany(){
+ const company_name=
+  document.getElementById("companyName").value.trim();
+
+ const admin_full_name=
+  document.getElementById("adminName").value.trim();
+
+ const admin_email=
+  document.getElementById("adminEmail").value.trim();
+
+ const admin_password=
+  document.getElementById("adminPassword").value;
+
+ const plan_name=
+  document.getElementById("planName").value;
+
+ const max_users=Number(
+  document.getElementById("maxUsers").value
+ );
+
+ const days=Number(
+  document.getElementById("subscriptionDays").value
+ );
+
+ if(!company_name || !admin_full_name ||
+    !admin_email || !admin_password){
+  message("mainMessage","يرجى إكمال جميع حقول الشركة والمدير.","error");
+  return;
+ }
+
+ if(admin_password.length<8){
+  message("mainMessage","كلمة مرور المدير يجب أن تكون 8 أحرف على الأقل.","error");
+  return;
+ }
+
+ if(!Number.isInteger(max_users) || max_users<1 ||
+    !Number.isInteger(days) || days<1){
+  message("mainMessage","تحقق من عدد المستخدمين ومدة الاشتراك.","error");
+  return;
+ }
+
+ const btn=document.getElementById("createBtn");
+ btn.disabled=true;
+ btn.textContent="جاري إنشاء الشركة...";
+
+ const expires_at=new Date(
+  Date.now()+days*24*60*60*1000
+ ).toISOString();
+
+ try{
+  const {data,error}=await db.functions.invoke(
+   "owner-create-company",
+   {
+    body:{
+     company_name,
+     admin_full_name,
+     admin_email,
+     admin_password,
+     plan_name,
+     max_users,
+     expires_at
+    }
+   }
+  );
+
+  if(error){
+   let detail=error.message;
+   try{
+    if(error.context && typeof error.context.json==="function"){
+     const body=await error.context.json();
+     detail=body.error || body.message || detail;
+    }
+   }catch(e){}
+   throw new Error(detail);
+  }
+
+  if(data && data.error){
+   throw new Error(data.error);
+  }
+
+  message(
+   "mainMessage",
+   "تم إرسال طلب إنشاء الشركة بنجاح. تحقق من ظهور الشركة في القائمة.",
+   "success"
+  );
+
+  document.getElementById("companyName").value="";
+  document.getElementById("adminName").value="";
+  document.getElementById("adminEmail").value="";
+  document.getElementById("adminPassword").value="";
+
+  await loadCompanies();
+
+ }catch(error){
+  message("mainMessage","لم يكتمل إنشاء الشركة: "+error.message,"error");
+ }finally{
+  btn.disabled=false;
+  btn.textContent="إنشاء الشركة وحساب المدير";
+ }
+}
+
+// ==========================================
+// AUTH STATE
+// ==========================================
+
+db.auth.onAuthStateChange((event,session)=>{
+ if(event==="SIGNED_OUT"){
+  showLogin();
+ }
+});
+
+// ==========================================
+// START
+// ==========================================
+
+checkOwner();
+
+</script>
+</body>
+</html>
